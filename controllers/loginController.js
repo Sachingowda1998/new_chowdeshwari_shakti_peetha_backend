@@ -23,11 +23,11 @@ exports.login = async (req, res) => {
         if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
         const token = generateToken(user);
-        // res.cookie('userToken', token, { httpOnly: true });
-        // res.cookie('loginType', user.loginType, { httpOnly: true });
-        res.cookie('userToken', token, { httpOnly: false, secure: false, sameSite: 'None' });
-        res.cookie('loginType', user.loginType, { httpOnly: false, secure: false, sameSite: 'None' });
-        res.status(200).json({ message: 'Login successful' });
+        res.status(200).json({
+            message: 'Login successful',
+            token: token,          // Send the token in the response
+            loginType: user.loginType // Send login type as part of the response
+        });
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }

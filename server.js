@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json());
 
 // Enable CORS for all routes 
-app.use(cors({ credentials: true, origin: process.env.FRONT_END_URL }));
+app.use(cors());
 
 // Use Helmet for added security headers
 app.use(helmet({
