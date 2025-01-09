@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const cors = require("cors");
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 // Initialize the app
@@ -25,15 +25,29 @@ app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow resources to be shared across origins
   }));
 
-app.use(cookieParser());
+// app.use(cookieParser());
+
+// Serve static files from the uploads folder
+app.use('/uploads', express.static('uploads'));
+
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB connected'))
+    .then(() => console.log('MongoDB connected successfully'))
     .catch((err) => console.error('MongoDB connection error:', err));
 
 // Routes
 app.use('/api/auth', require('./routes/loginRoutes'));
+app.use('/api/website-details', require('./routes/websiteDetailsRoutes'));
+app.use('/api/categories', require('./routes/categoryRoutes'));
+app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/astrogurus', require('./routes/astroGuruRoutes'));
+app.use('/api/subscriptions', require('./routes/subscriptionRoutes'));
+app.use('/api/rituals', require('./routes/ritualRoutes'));
+app.use('/api/carousel', require('./routes/carouselRoutes'));
+
+
+
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
