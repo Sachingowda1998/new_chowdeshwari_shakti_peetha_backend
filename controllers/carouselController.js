@@ -1,5 +1,7 @@
 const Carousel = require('../models/carouselModel');
 
+const fs = require('fs'); // Import the file system module
+
 // Fetch carousel data
 exports.getCarouselData = async (req, res) => {
     try {
@@ -34,9 +36,26 @@ exports.addCarouselData = async (req, res) => {
 exports.editCarouselData = async (req, res) => {
     try {
         const updates = req.body;
+
+        const existingData = await Carousel.findOne();
+
+        if (!existingData) return res.status(404).json({ error: 'Carousel data not found' });
+
+        // Delete old images if new ones are uploaded
+        if (req.files) {
+            const oldImages = [existingData.image1, existingData.image2, existingData.image3];
+            const newImages = [updates.image1, updates.image2, updates.image3];
+            oldImages.forEach((image, index) => {
+                if (image && image !== newImages[index]) {
+                    const filePath = `.${image}`;
+                    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                }
+            });
+        }
         const data = await Carousel.findOneAndUpdate({}, updates, { new: true, runValidators: true });
-        if (!data) return res.status(404).json({ error: 'Carousel data not found' });
+
         res.status(200).json({ message: 'Carousel data updated successfully', data });
+
     } catch (err) {
         res.status(500).json({ error: 'Internal server error' });
     }
@@ -47,8 +66,19 @@ exports.deleteCarouselData = async (req, res) => {
     try {
         const data = await Carousel.findOneAndDelete();
         if (!data) return res.status(404).json({ error: 'Carousel data not found' });
+
+        // Remove associated images
+        const imagesToDelete = [data.image1, data.image2, data.image3];
+        imagesToDelete.forEach((image) => {
+            if (image) {
+                const filePath = `.${image}`;
+                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            }
+        });
+
         res.status(200).json({ message: 'Carousel data deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+

@@ -1,5 +1,7 @@
 const Ritual = require('../models/ritualModel');
 
+const fs = require('fs'); // Add this at the top of your file
+
 // Fetch all rituals
 exports.getAllRituals = async (req, res) => {
     try {
@@ -88,16 +90,27 @@ exports.addOption = async (req, res) => {
 // Edit a ritual
 exports.editRitual = async (req, res) => {
     try {
+        const ritual = await Ritual.findById(req.params.id);
+        if (!ritual) return res.status(404).json({ error: 'Ritual not found' });
+
         const updates = { ...req.body };
-        if (req.file) updates.image = `/uploads/${req.file.filename}`;
+
+        // If a new file is uploaded, delete the old file
+        if (req.file) {
+            const oldImagePath = `.${ritual.image}`; // Current image path
+            updates.image = `/uploads/${req.file.filename}`; // Update to new image
+
+            // Remove the old image file
+            if (fs.existsSync(oldImagePath)) {
+                fs.unlinkSync(oldImagePath);
+            }
+        }
 
         const updatedRitual = await Ritual.findByIdAndUpdate(
             req.params.id,
             updates,
             { new: true, runValidators: true }
         );
-
-        if (!updatedRitual) return res.status(404).json({ error: 'Ritual not found' });
 
         res.status(200).json({ message: 'Ritual updated successfully', ritual: updatedRitual });
     } catch (error) {
@@ -126,14 +139,24 @@ exports.editOption = async (req, res) => {
 // Delete a ritual
 exports.deleteRitual = async (req, res) => {
     try {
-        const deletedRitual = await Ritual.findByIdAndDelete(req.params.id);
-        if (!deletedRitual) return res.status(404).json({ error: 'Ritual not found' });
+        const ritual = await Ritual.findById(req.params.id);
+        if (!ritual) return res.status(404).json({ error: 'Ritual not found' });
+
+        // Remove the image file
+        const imagePath = `.${ritual.image}`;
+        if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+        }
+
+        // Delete the ritual
+        await ritual.remove();
 
         res.status(200).json({ message: 'Ritual deleted successfully' });
     } catch (error) {
         res.status(400).json({ error: 'Invalid ritual ID format' });
     }
 };
+
 
 // Delete an option for a ritual
 exports.deleteOption = async (req, res) => {

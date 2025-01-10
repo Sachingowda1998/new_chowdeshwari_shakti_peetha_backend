@@ -45,6 +45,8 @@ app.use('/api/astrogurus', require('./routes/astroGuruRoutes'));
 app.use('/api/subscriptions', require('./routes/subscriptionRoutes'));
 app.use('/api/rituals', require('./routes/ritualRoutes'));
 app.use('/api/carousel', require('./routes/carouselRoutes'));
+app.use('/api/subscription-carousel', require('./routes/subscriptionCarouselRoutes'));
+app.use('/api/devotee-carousel', require('./routes/devoteeCarouselRoutes'));
 
 
 
