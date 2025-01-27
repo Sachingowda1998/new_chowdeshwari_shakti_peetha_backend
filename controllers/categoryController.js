@@ -50,18 +50,22 @@ exports.getSubcategory = async (req, res) => {
 // Add a category
 exports.addCategory = async (req, res) => {
     try {
-        const { name, image, active } = req.body;
-        if (!name || !image) {
+        const { name, active } = req.body;
+
+        if (!name || !req.file) {
             return res.status(400).json({ error: 'Name and image are required' });
         }
 
+        const image = req.file.path; // Save the image file path
         const category = new Category({ name, image, active });
         await category.save();
+
         res.status(201).json({ message: 'Category added successfully', category });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 };
+
 
 // Add a subcategory under a category
 exports.addSubcategory = async (req, res) => {
@@ -83,8 +87,14 @@ exports.addSubcategory = async (req, res) => {
 // Edit a category
 exports.editCategory = async (req, res) => {
     try {
-        const { name, image, active } = req.body;
-        const category = await Category.findByIdAndUpdate(req.params.id, { name, image, active }, { new: true });
+        const { name, active } = req.body;
+        const updateData = { name, active };
+
+        if (req.file) {
+            updateData.image = req.file.path; // Update image file path if provided
+        }
+
+        const category = await Category.findByIdAndUpdate(req.params.id, updateData, { new: true });
         if (!category) return res.status(404).json({ error: 'Category not found' });
 
         res.status(200).json({ message: 'Category updated successfully', category });
